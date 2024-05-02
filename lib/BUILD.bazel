@@ -314,6 +314,11 @@ bzl_library(
 )
 
 bzl_library(
+    name = "dearmor_gpg_key",
+    srcs = ["dearmor_gpg_key.bzl"],
+)
+
+bzl_library(
     name = "resource_sets",
     srcs = ["resource_sets.bzl"],
 )

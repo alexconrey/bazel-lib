@@ -1,0 +1,23 @@
+"Tests for dearmor_gpg_file"
+
+load("//lib:dearmor_gpg_key.bzl", "dearmor_gpg_key")
+load("//lib:testing.bzl", "assert_contains")
+
+dearmor_gpg_key(
+    name = "debian_bookworm_key",
+    key = ":test_public_key.gpg",
+)
+
+genrule(
+    name = "keystrings",
+    outs = ["keystrings.txt"],
+    cmd = "cat $(location :debian_bookworm_key) | strings > $@",
+    toolchains = ["@coreutils_toolchains//:resolved_toolchain"],
+    srcs = [":debian_bookworm_key"],
+)
+
+assert_contains(
+    name = "debian_bookworm_key_binary",
+    actual = ":keystrings.txt",
+    expected = "Debian Stable Release Key",
+)
