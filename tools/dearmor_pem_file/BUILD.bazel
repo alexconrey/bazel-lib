@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "dearmor_pem_file_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/aspect-build/bazel-lib/tools/dearmor_pem_file",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "dearmor_pem_file",
+    embed = [":dearmor_pem_file_lib"],
+    visibility = ["//visibility:public"],
+)

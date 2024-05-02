@@ -1,9 +1,9 @@
 "Tests for dearmor_gpg_file"
 
-load("//lib:dearmor_gpg_key.bzl", "dearmor_gpg_key")
+load("//lib:dearmor_pem_file.bzl", "dearmor_pem_file")
 load("//lib:testing.bzl", "assert_contains")
 
-dearmor_gpg_key(
+dearmor_pem_file(
     name = "debian_bookworm_key",
     key = ":test_public_key.gpg",
 )

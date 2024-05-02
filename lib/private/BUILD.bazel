@@ -80,15 +80,15 @@ bzl_library(
 )
 
 bzl_library(
-    name = "dearmor_gpg_key",
-    srcs = ["dearmor_gpg_key.bzl"],
+    name = "dearmor_pem_file",
+    srcs = ["dearmor_pem_file.bzl"],
     visibility = ["//lib:__subpackages__"],
     deps = [
         "@bazel_skylib//lib:paths",
     ],
 )
 
-exports_files(["dearmor_gpg_key.sh.tpl"])
+exports_files(["dearmor_pem_file.sh.tpl"])
 
 bzl_library(
     name = "copy_to_directory_toolchain",
