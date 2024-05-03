@@ -40,3 +40,51 @@ assert_contains(
     actual = ":microsoft_packages_keystrings.txt",
     expected = "Microsoft (Release signing) <gpgsecurity@microsoft.com>",
 )
+
+dearmor_pem_file(
+    name = "test_private_key",
+    key = ":test_private_key.pem",
+)
+
+genrule(
+    name = "private_key_reencode_pem",
+    srcs = [
+        ":test_private_key",
+        ":test_public_key.pem",
+    ],
+    outs = ["private_key_reencode_pem.txt"],
+    cmd = "diff -u <(openssl rsa -inform der -in $(location :test_private_key) -pubout -outform pem) <(cat $(location :test_public_key.pem)) | wc -l > $@",
+    toolchains = ["@coreutils_toolchains//:resolved_toolchain"],
+)
+
+# Take DER formatted output of dearmor_pem_file containing private key, use it to generate a public key.
+# Make sure generated public key is identical to the test public key in PEM format. (Forward/Backward encoding)
+assert_contains(
+    name = "reencode_private_key_public_key_matches_existing",
+    actual = ":private_key_reencode_pem.txt",
+    expected = "0",
+)
+
+dearmor_pem_file(
+    name = "test_public_key",
+    key = ":test_public_key.pem",
+)
+
+genrule(
+    name = "public_key_reencode_pem",
+    srcs = [
+        ":test_public_key",
+        ":test_public_key.pem",
+    ],
+    outs = ["public_key_reencode_pem.txt"],
+    cmd = "diff -u <(openssl rsa -pubin -in $(location :test_public_key) -inform der -outform pem 2>/dev/null) <(cat $(location :test_public_key.pem)) | wc -l > $@",
+
+)
+
+# Take DER formatted output of dearmor_pem_file containing public key, diff it against provided PEM input file.
+# Make sure generated output from DER format is identical to provided input. (Forward/Backward encoding)
+assert_contains(
+    name = "reencode_public_key_matches_existing",
+    actual = ":public_key_reencode_pem.txt",
+    expected = "0",
+)
