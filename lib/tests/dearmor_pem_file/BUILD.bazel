@@ -58,7 +58,7 @@ genrule(
 )
 
 # Take DER formatted output of dearmor_pem_file containing private key, use it to generate a public key.
-# Make sure generated public key is identical to the test public key in PEM format. (Forward/Backward encoding)
+# Make sure generated public key is identical to the test public key file contents. (Forward/Backward encoding)
 assert_contains(
     name = "reencode_private_key_public_key_matches_existing",
     actual = ":private_key_reencode_pem.txt",
