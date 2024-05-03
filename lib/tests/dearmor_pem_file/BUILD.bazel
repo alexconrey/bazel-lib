@@ -10,10 +10,10 @@ dearmor_pem_file(
 
 genrule(
     name = "debian_keystrings",
+    srcs = [":debian_bookworm_key"],
     outs = ["debian_keystrings.txt"],
     cmd = "cat $(location :debian_bookworm_key) | strings > $@",
     toolchains = ["@coreutils_toolchains//:resolved_toolchain"],
-    srcs = [":debian_bookworm_key"],
 )
 
 assert_contains(
@@ -29,10 +29,10 @@ dearmor_pem_file(
 
 genrule(
     name = "microsoft_packages_keystrings",
+    srcs = [":microsoft_packages_keystrings_asc"],
     outs = ["microsoft_packages_keystrings.txt"],
     cmd = "cat $(location :microsoft_packages_keystrings_asc) | strings > $@",
     toolchains = ["@coreutils_toolchains//:resolved_toolchain"],
-    srcs = [":microsoft_packages_keystrings_asc"],
 )
 
 assert_contains(

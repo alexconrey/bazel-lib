@@ -316,6 +316,7 @@ bzl_library(
 bzl_library(
     name = "dearmor_pem_file",
     srcs = ["dearmor_pem_file.bzl"],
+    deps = ["//lib/private:dearmor_pem_file"],
 )
 
 bzl_library(
