@@ -40,10 +40,13 @@ func loadKeysFromFile(filePath string) ([]Key, error) {
 
 	// Trim:
 	// * the known PEM start/end blocks from the input
+	// * Attributes/Metadata included in the PEM file
+	// * Double newlines
 	trimLines := []string{
-		"^-----BEGIN .*-----\n",
-		"((.*):(.*)\n?)", // Ignore any metadata which may be included
-		"-----END .*-----",
+		`^-----BEGIN .*-----`,
+		`-----END .*-----`,
+		`.*: .*\n`, // Ignore any metadata which may be included
+		`^\n\n`,
 	}
 
 	for i := range trimLines {
