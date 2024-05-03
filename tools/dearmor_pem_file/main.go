@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
 )
 
 type Key struct {
@@ -38,25 +38,44 @@ func loadKeysFromFile(filePath string) ([]Key, error) {
 	dataStr := string(data)
 	armoredContents := dataStr
 
+	// Trim:
+	// * the known PEM start/end blocks from the input
 	trimLines := []string{
-		"-----BEGIN PGP PUBLIC KEY BLOCK-----",
-		"-----END PGP PUBLIC KEY BLOCK-----",
+		"^-----BEGIN .*-----\n(.*)\n",
+		"-----END .*-----",
 	}
-
-	dataStr = strings.TrimSpace(dataStr)
-	dataStr = strings.Replace(dataStr, "\n", "", -1)
 
 	for i := range trimLines {
 		line := trimLines[i]
-		dataStr = strings.TrimPrefix(dataStr, line)
-		dataStr = strings.TrimSuffix(dataStr, line)
+		re := regexp.MustCompile(line)
+		dataStr = re.ReplaceAllString(dataStr, "")
 	}
 
-	dataStr = dataStr[:len(dataStr)-5]
+	// If a checksum was provided in the file contents, parse it out
+	checksumLine := `\n=(?P<checksum>.+)\n`
+	re := regexp.MustCompile(checksumLine)
+	if re.SubexpIndex("checksum") != -1 {
+		matches := re.FindStringSubmatch(dataStr)
+		if len(matches) > 0 {
+			dataStr = re.ReplaceAllString(dataStr, "")
+		}
+	}
 
-	dearmoredData, err := base64.StdEncoding.DecodeString(dataStr)
+	var dearmoredData []byte
+
+	dearmoredData, err = base64.RawStdEncoding.DecodeString(dataStr)
 	if err != nil {
-		return keys, err
+		// If the length of the dearmoredData is 0, there was no valid base64 data found
+		// otherwise, if length is greater than 0 - there was data found and we will use it.
+		if len(dearmoredData) == 0 {
+			return keys, err
+		}
+	}
+
+	// RFC says that the byte sequence must end a newline, enforce it if missing
+	lastByte := dearmoredData[len(dearmoredData)-1]
+	if lastByte != 14 {
+		dearmoredData = append(dearmoredData, 14)
 	}
 
 	key := Key{

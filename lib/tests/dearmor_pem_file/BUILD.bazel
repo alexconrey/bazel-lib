@@ -5,12 +5,12 @@ load("//lib:testing.bzl", "assert_contains")
 
 dearmor_pem_file(
     name = "debian_bookworm_key",
-    key = ":test_public_key.gpg",
+    key = ":debian_bookworm_signing_key.gpg",
 )
 
 genrule(
-    name = "keystrings",
-    outs = ["keystrings.txt"],
+    name = "debian_keystrings",
+    outs = ["debian_keystrings.txt"],
     cmd = "cat $(location :debian_bookworm_key) | strings > $@",
     toolchains = ["@coreutils_toolchains//:resolved_toolchain"],
     srcs = [":debian_bookworm_key"],
@@ -18,6 +18,25 @@ genrule(
 
 assert_contains(
     name = "debian_bookworm_key_binary",
-    actual = ":keystrings.txt",
+    actual = ":debian_keystrings.txt",
     expected = "Debian Stable Release Key",
+)
+
+dearmor_pem_file(
+    name = "microsoft_packages_keystrings_asc",
+    key = ":microsoft_packages.asc",
+)
+
+genrule(
+    name = "microsoft_packages_keystrings",
+    outs = ["microsoft_packages_keystrings.txt"],
+    cmd = "cat $(location :microsoft_packages_keystrings_asc) | strings > $@",
+    toolchains = ["@coreutils_toolchains//:resolved_toolchain"],
+    srcs = [":microsoft_packages_keystrings_asc"],
+)
+
+assert_contains(
+    name = "microsoft_packages_key_binary",
+    actual = ":microsoft_packages_keystrings.txt",
+    expected = "Microsoft (Release signing) <gpgsecurity@microsoft.com>",
 )
