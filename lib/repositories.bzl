@@ -10,6 +10,7 @@ load("//lib/private:jq_toolchain.bzl", "JQ_PLATFORMS", "jq_host_alias_repo", "jq
 load("//lib/private:source_toolchains_repo.bzl", "source_toolchains_repo")
 load("//lib/private:tar_toolchain.bzl", "BSDTAR_PLATFORMS", "bsdtar_binary_repo", "tar_toolchains_repo")
 load("//lib/private:yq_toolchain.bzl", "YQ_PLATFORMS", "yq_host_alias_repo", "yq_platform_repo", "yq_toolchains_repo", _DEFAULT_YQ_VERSION = "DEFAULT_YQ_VERSION")
+load("//lib/private:zstd_toolchain.bzl", "ZSTD_PLATFORMS", "zstd_binary_repo", "zstd_toolchains_repo")
 load("//tools:version.bzl", "IS_PRERELEASE")
 
 # buildifier: disable=unnamed-macro
@@ -18,10 +19,10 @@ def aspect_bazel_lib_dependencies():
 
     http_archive(
         name = "bazel_skylib",
-        sha256 = "cd55a062e763b9349921f0f5db8c3933288dc8ba4f76dd9416aac68acee3cb94",
+        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         urls = [
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.5.0.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.5.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         ],
     )
 
@@ -37,7 +38,7 @@ def register_jq_toolchains(name = DEFAULT_JQ_REPOSITORY, version = DEFAULT_JQ_VE
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users, but false when used under bzlmod extension
     """
-    for [platform, meta] in JQ_PLATFORMS.items():
+    for [platform, _] in JQ_PLATFORMS.items():
         jq_platform_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -65,7 +66,7 @@ def register_yq_toolchains(name = DEFAULT_YQ_REPOSITORY, version = DEFAULT_YQ_VE
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users, but false when used under bzlmod extension
     """
-    for [platform, meta] in YQ_PLATFORMS.items():
+    for [platform, _] in YQ_PLATFORMS.items():
         yq_platform_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -91,7 +92,7 @@ def register_tar_toolchains(name = DEFAULT_TAR_REPOSITORY, register = True):
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users, but false when used under bzlmod extension
     """
-    for [platform, meta] in BSDTAR_PLATFORMS.items():
+    for [platform, _] in BSDTAR_PLATFORMS.items():
         bsdtar_binary_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -100,6 +101,29 @@ def register_tar_toolchains(name = DEFAULT_TAR_REPOSITORY, register = True):
             native.register_toolchains("@%s_toolchains//:%s_toolchain" % (name, platform))
 
     tar_toolchains_repo(
+        name = "%s_toolchains" % name,
+        user_repository_name = name,
+    )
+
+DEFAULT_ZSTD_REPOSITORY = "zstd"
+
+def register_zstd_toolchains(name = DEFAULT_ZSTD_REPOSITORY, register = True):
+    """Registers zstd toolchain and repositories
+
+    Args:
+        name: override the prefix for the generated toolchain repositories
+        register: whether to call through to native.register_toolchains.
+            Should be True for WORKSPACE users, but false when used under bzlmod extension
+    """
+    for [platform, _] in ZSTD_PLATFORMS.items():
+        zstd_binary_repo(
+            name = "%s_%s" % (name, platform),
+            platform = platform,
+        )
+        if register:
+            native.register_toolchains("@%s_toolchains//:%s_toolchain" % (name, platform))
+
+    zstd_toolchains_repo(
         name = "%s_toolchains" % name,
         user_repository_name = name,
     )
@@ -191,7 +215,7 @@ def register_coreutils_toolchains(name = DEFAULT_COREUTILS_REPOSITORY, version =
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users, but false when used under bzlmod extension
     """
-    for [platform, meta] in COREUTILS_PLATFORMS.items():
+    for [platform, _] in COREUTILS_PLATFORMS.items():
         coreutils_platform_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -227,7 +251,7 @@ def register_copy_directory_toolchains(name = DEFAULT_COPY_DIRECTORY_REPOSITORY,
             native.register_toolchains("@%s_toolchains//:toolchain" % name)
         return
 
-    for [platform, meta] in COPY_DIRECTORY_PLATFORMS.items():
+    for [platform, _] in COPY_DIRECTORY_PLATFORMS.items():
         copy_directory_platform_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -262,7 +286,7 @@ def register_copy_to_directory_toolchains(name = DEFAULT_COPY_TO_DIRECTORY_REPOS
             native.register_toolchains("@%s_toolchains//:toolchain" % name)
         return
 
-    for [platform, meta] in COPY_TO_DIRECTORY_PLATFORMS.items():
+    for [platform, _] in COPY_TO_DIRECTORY_PLATFORMS.items():
         copy_to_directory_platform_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -297,7 +321,7 @@ def register_expand_template_toolchains(name = DEFAULT_EXPAND_TEMPLATE_REPOSITOR
             native.register_toolchains("@%s_toolchains//:toolchain" % name)
         return
 
-    for [platform, meta] in EXPAND_TEMPLATE_PLATFORMS.items():
+    for [platform, _] in EXPAND_TEMPLATE_PLATFORMS.items():
         expand_template_platform_repo(
             name = "%s_%s" % (name, platform),
             platform = platform,
@@ -324,4 +348,5 @@ def aspect_bazel_lib_register_toolchains():
     register_jq_toolchains()
     register_yq_toolchains()
     register_tar_toolchains()
+    register_zstd_toolchains()
     register_bats_toolchains()

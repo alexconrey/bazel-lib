@@ -31,6 +31,12 @@ bool_flag(
     build_setting_default = True if is_bzlmod_enabled() else False,
 )
 
+# TODO(3.0): change default to True.
+bool_flag(
+    name = "tar_compute_unused_inputs",
+    build_setting_default = False,
+)
+
 config_setting(
     name = "enable_runfiles",
     values = {"enable_runfiles": "true"},
@@ -62,6 +68,10 @@ toolchain_type(
 
 toolchain_type(
     name = "tar_toolchain_type",
+)
+
+toolchain_type(
+    name = "zstd_toolchain_type",
 )
 
 toolchain_type(
@@ -254,6 +264,7 @@ bzl_library(
         "//lib/private:source_toolchains_repo",
         "//lib/private:tar_toolchain",
         "//lib/private:yq_toolchain",
+        "//lib/private:zstd_toolchain",
     ],
 )
 

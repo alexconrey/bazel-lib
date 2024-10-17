@@ -34,36 +34,60 @@ COREUTILS_PLATFORMS = {
     ),
 }
 
-DEFAULT_COREUTILS_VERSION = "0.0.23"
-
 # https://github.com/uutils/coreutils/releases
 #
 # The integrity hashes can be automatically fetched for the coreutils releases by running
 # `tools/coreutils_mirror_release.sh`.
 COREUTILS_VERSIONS = {
-    "0.0.23": {
+    "0.0.27": {
         "darwin_arm64": {
-            "filename": "coreutils-0.0.23-aarch64-apple-darwin.tar.gz",
-            "sha256": "sha256-KP90sjKxtXDbLC+o5f4+gQnvP3Tr7O0RopME4g9QF5E=",
+            "filename": "coreutils-0.0.27-aarch64-apple-darwin.tar.gz",
+            "sha256": "sha256-BjAeGgJ8+sLCIwmokCOkfelCCLtnNRH49QcFnrDq8a4=",
         },
         "linux_arm64": {
-            "filename": "coreutils-0.0.23-aarch64-unknown-linux-gnu.tar.gz",
-            "sha256": "sha256-8wMVMgAgf8JQ2+2LdoewkyDo416VEsf9RlMJl4jiBjk=",
+            "filename": "coreutils-0.0.27-aarch64-unknown-linux-musl.tar.gz",
+            "sha256": "sha256-doU+ZfTyA5I8RSwDAcsOkEI3BZXFuFwBfEbg+diS06g=",
         },
         "darwin_amd64": {
+            "filename": "coreutils-0.0.27-x86_64-apple-darwin.tar.gz",
+            "sha256": "sha256-1ivz4ue8/ROUYhPh22Bg2ASPgC6MKMulR52nLgZvTBo=",
+        },
+        "windows_amd64": {
+            "filename": "coreutils-0.0.27-x86_64-pc-windows-msvc.zip",
+            "sha256": "sha256-DC4H+hQX51aHoFudV39n7u217NDcNL9AiG4o4edboV0=",
+        },
+        "linux_amd64": {
+            "filename": "coreutils-0.0.27-x86_64-unknown-linux-musl.tar.gz",
+            "sha256": "sha256-tM+hJd16cCjflJyMwsCaevPYZMiBkIKZJm7/XC+760w=",
+        },
+    },
+    "0.0.26": {
+        "darwin_arm64": {
+            "filename": "coreutils-0.0.26-aarch64-apple-darwin.tar.gz",
+            "sha256": "sha256-/A6CNYWmvOwPW443pH+wO+VtzDFgussN1hRGuANnFOU=",
+        },
+        "linux_arm64": {
+            "filename": "coreutils-0.0.26-aarch64-unknown-linux-musl.tar.gz",
+            "sha256": "sha256-9zGLFOMDjUDbraDY/hrE5zFJ0O+QYrvx2wHk3Gw3q/A=",
+        },
+        "darwin_amd64": {
+            # TODO: remove this version_override hack once 0.0.27 is releases and contains a darwin arm binary
+            "version_override": "0.0.23",
             "filename": "coreutils-0.0.23-x86_64-apple-darwin.tar.gz",
             "sha256": "sha256-SswetVAuK/hMK1r9uBvNnKj5JpSgD0bzkbsHTxOabCo=",
         },
         "windows_amd64": {
-            "filename": "coreutils-0.0.23-x86_64-pc-windows-msvc.zip",
-            "sha256": "sha256-aglIj5JvFGLm2ABwRzWAsZRTTD3X444V3GxHM9pGJS4=",
+            "filename": "coreutils-0.0.26-x86_64-pc-windows-msvc.zip",
+            "sha256": "sha256-6qPkqxQZM4XBBBJ80t1uvzfZiz0gBeT/zoCdfqOO3uk=",
         },
         "linux_amd64": {
-            "filename": "coreutils-0.0.23-x86_64-unknown-linux-gnu.tar.gz",
-            "sha256": "sha256-u7OMW43Y46aXRRIKULfKdfUW51WJn6G70s5Xxwb6/1g=",
+            "filename": "coreutils-0.0.26-x86_64-unknown-linux-musl.tar.gz",
+            "sha256": "sha256-QpGVp3wmHqpt5Brd/bdj7pyMQNftcihOtaRI8z2uhp0=",
         },
     },
 }
+
+DEFAULT_COREUTILS_VERSION = COREUTILS_VERSIONS.keys()[0]
 
 CoreUtilsInfo = provider(
     doc = "Provide info for executing coreutils",
@@ -176,8 +200,11 @@ def _coreutils_platform_repo_impl(rctx):
     is_windows = rctx.attr.platform.startswith("windows_")
     platform = rctx.attr.platform
     filename = COREUTILS_VERSIONS[rctx.attr.version][platform]["filename"]
+    version = rctx.attr.version
+    if "version_override" in COREUTILS_VERSIONS[rctx.attr.version][platform]:
+        version = COREUTILS_VERSIONS[rctx.attr.version][platform]["version_override"]
     url = "https://github.com/uutils/coreutils/releases/download/{}/{}".format(
-        rctx.attr.version,
+        version,
         filename,
     )
     rctx.download_and_extract(

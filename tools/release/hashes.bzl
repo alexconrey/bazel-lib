@@ -14,13 +14,14 @@ def _hash(ctx, algo, file):
         inputs = [file],
         tools = [coreutils.coreutils_info.bin],
         # coreutils has --no-names option but it doesn't work in current version, so we have to use cut.
-        command = """HASH=$({coreutils} hashsum --{algo} {src} | {coreutils} cut -f1 -d " ") && {coreutils} echo -ne "$HASH {basename}" > {out}""".format(
+        command = """HASH=$({coreutils} hashsum --{algo} {src} | {coreutils} cut -f1 -d " ") && {coreutils} echo -e "$HASH {basename}" > {out}""".format(
             coreutils = coreutils.coreutils_info.bin.path,
             algo = algo,
             src = file.path,
             basename = file.basename,
             out = out.path,
         ),
+        toolchain = "@aspect_bazel_lib//lib:coreutils_toolchain_type",
     )
     return out
 

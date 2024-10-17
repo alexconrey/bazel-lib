@@ -152,6 +152,10 @@ copy_to_directory(
     include_external_repositories = ["external_test_repo"],
 )
 
+# TODO: This test is a false positive. sh_test always includes default
+# outputs in runfiles, so even if copy_to_directory did not add its output
+# to its runfiles this test would still pass.
+# See https://github.com/bazelbuild/bazel/issues/4519.
 sh_test(
     name = "case_6_test",
     timeout = "short",
@@ -273,7 +277,7 @@ copy_directory(
 )
 
 # Case 11: two inputs with same subfolders
-# regression test for https://github.com/aspect-build/bazel-lib/issues/133
+# regression test for https://github.com/bazel-contrib/bazel-lib/issues/133
 copy_to_directory(
     name = "case_11",
     srcs = [
@@ -448,4 +452,23 @@ diff_test(
     name = "case_21_test",
     file1 = "case_21",
     file2 = ":expected_21",
+)
+
+# Case 22: empty sources creates an empty directory output
+copy_to_directory(
+    name = "case_22",
+    srcs = [],
+)
+
+copy_to_directory(
+    name = "expected_22",
+    srcs = ["dir_expected_22"],
+    exclude_srcs_patterns = ["**/filter_me_out"],
+)
+
+diff_test(
+    name = "case_22_test",
+    file1 = "case_22",
+    file2 = ":expected_22",
+    tags = ["local"],  # seems that the Bazel sandbox has trouble with empty directories
 )

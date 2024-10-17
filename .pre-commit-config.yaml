@@ -5,7 +5,6 @@
 # Commitizen runs in commit-msg stage
 # but we don't want to run the other hooks on commit messages
 default_stages: [commit]
-
 repos:
   # Check formatting and lint for starlark code
   - repo: https://github.com/keith/pre-commit-buildifier
@@ -15,7 +14,7 @@ repos:
       - id: buildifier-lint
   # Enforce that commit messages allow for later changelog generation
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.13.0
+    rev: v3.24.0
     hooks:
       # Requires that commitizen is already installed
       - id: commitizen
@@ -36,6 +35,15 @@ repos:
         exclude: &exclude_pattern "^(docs|e2e|lib/tests)/"
       - id: mixed-line-ending
       - id: trailing-whitespace
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.23.2
+    hooks:
+      - id: typos
+        exclude: |
+          (?x)^(
+            lib/private/yq_toolchain.bzl|
+            lib/tests/glob_match_test.bzl
+          )
   - repo: local
     hooks:
       - id: aspect_rules_lint

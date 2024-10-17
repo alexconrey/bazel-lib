@@ -60,9 +60,9 @@ func main() {
 		content = strings.ReplaceAll(content, key, value)
 	}
 
-	var mode os.FileMode = 0666
+	var mode os.FileMode = 0o666
 	if executable {
-		mode = 0777
+		mode = 0o777
 	}
 	err = os.WriteFile(args[1], []byte(content), mode)
 	if err != nil {
@@ -71,8 +71,8 @@ func main() {
 }
 
 // captures every `KEY VALUE` line in the status file.
-// for explanation see: https://regex101.com/r/3Lfw6U/2
-var STATUS_REGEX = regexp.MustCompile(`(?m)^([^\s]+)\s+([^\n]*)$`)
+// for explanation see: https://regex101.com/r/cr6wX1/1
+var STATUS_REGEX = regexp.MustCompile(`(?m)^([^\s]+)[[:blank:]]+([^\n]*)$`)
 
 func parseStatusFile(statusFilePath string) (map[string]string, error) {
 	statusFile, err := os.ReadFile(statusFilePath)
@@ -89,5 +89,4 @@ func parseStatusFile(statusFilePath string) (map[string]string, error) {
 	}
 
 	return results, nil
-
 }

@@ -1,18 +1,19 @@
 """Implementation of copy_directory macro and underlying rules.
 
-This rule copies a directory to another location using Bash (on Linux/macOS) or
-cmd.exe (on Windows).
+This rule copies a directory to another location using a precompiled binary.
 """
 
-load(":copy_common.bzl", _COPY_EXECUTION_REQUIREMENTS = "COPY_EXECUTION_REQUIREMENTS", _progress_path = "progress_path")
+load(":copy_common.bzl", _COPY_EXECUTION_REQUIREMENTS = "COPY_EXECUTION_REQUIREMENTS")
 
 def copy_directory_bin_action(
         ctx,
         src,
         dst,
         copy_directory_bin,
+        copy_directory_toolchain = "@aspect_bazel_lib//lib:copy_directory_toolchain_type",
         hardlink = "auto",
-        verbose = False):
+        verbose = False,
+        preserve_mtime = False):
     """Factory function that creates an action to copy a directory from src to dst using a tool binary.
 
     The tool binary will typically be the `@aspect_bazel_lib//tools/copy_directory` `go_binary`
@@ -30,11 +31,17 @@ def copy_directory_bin_action(
 
         copy_directory_bin: Copy to directory tool binary.
 
+        copy_directory_toolchain: The toolchain type for Auto Exec Groups. The default is probably what you want.
+
         hardlink: Controls when to use hardlinks to files instead of making copies.
 
             See copy_directory rule documentation for more details.
 
-        verbose: If true, prints out verbose logs to stdout
+        verbose: print verbose logs to stdout
+
+        preserve_mtime: preserve the modified time from the source.
+            See the caveats above about interactions with remote execution and caching.
+
     """
     args = [
         src.path,
@@ -48,14 +55,18 @@ def copy_directory_bin_action(
     elif hardlink == "auto" and not src.is_source:
         args.append("--hardlink")
 
+    if preserve_mtime:
+        args.append("--preserve-mtime")
+
     ctx.actions.run(
         inputs = [src],
         outputs = [dst],
         executable = copy_directory_bin,
         arguments = args,
         mnemonic = "CopyDirectory",
-        progress_message = "Copying directory %s" % _progress_path(src),
+        progress_message = "Copying directory %{input}",
         execution_requirements = _COPY_EXECUTION_REQUIREMENTS,
+        toolchain = copy_directory_toolchain,
     )
 
 def _copy_directory_impl(ctx):
@@ -71,6 +82,7 @@ def _copy_directory_impl(ctx):
         copy_directory_bin = copy_directory_bin,
         hardlink = ctx.attr.hardlink,
         verbose = ctx.attr.verbose,
+        preserve_mtime = ctx.attr.preserve_mtime,
     )
 
     return [
@@ -93,6 +105,10 @@ _copy_directory = rule(
             default = "auto",
         ),
         "verbose": attr.bool(),
+        "preserve_mtime": attr.bool(
+            doc = """If True, the last modified time of copied files is preserved. Note the caveats on copy_directory.""",
+            default = False,
+        ),
         # use '_tool' attribute for development only; do not commit with this attribute active since it
         # propagates a dependency on rules_go which would be breaking for users
         # "_tool": attr.label(
@@ -112,7 +128,7 @@ def copy_directory(
         **kwargs):
     """Copies a directory to another location.
 
-    This rule uses a Bash command on Linux/macOS/non-Windows, and a cmd.exe command on Windows (no Bash is required).
+    This rule uses a precompiled binary to perform the copy, so no shell is required.
 
     If using this rule with source directories, it is recommended that you use the
     `--host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1` startup option so that changes
